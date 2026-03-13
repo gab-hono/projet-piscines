@@ -1,0 +1,96 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Utilisateur {
+  id            Int      @id @default(autoincrement())
+  nom_prenom    String
+  email         String   @unique
+  mot_de_passe  String
+  pronoms       String?
+  photo         String?
+  role          Role     @default(USER)
+  created_at    DateTime @default(now())
+
+  favoris       Favori[]
+  avis          Avis[]
+}
+
+model Piscine {
+  id                  Int      @id @default(autoincrement())
+  nom                 String
+  adresse             String
+  description         String?
+  acces_pmr           Boolean  @default(false)
+  queer_friendly      Boolean  @default(false)
+  accepte_passe_paris Boolean  @default(true)
+  is_open             Boolean  @default(true)
+  last_updated_at     DateTime @updatedAt
+  images_galerie      String[]
+  created_at          DateTime @default(now())
+
+  bassins             Bassin[]
+  horaires            Horaire[]
+  favoris             Favori[]
+  avis                Avis[]
+}
+
+model Bassin {
+  id          Int     @id @default(autoincrement())
+  longueur    Float?
+  profondeur  Float?
+  piscineId   Int
+
+  piscine     Piscine @relation(fields: [piscineId], references: [id])
+}
+
+model Horaire {
+  id               Int     @id @default(autoincrement())
+  jour             String
+  heure_ouverture  String
+  heure_fermeture  String
+  piscineId        Int
+
+  piscine          Piscine @relation(fields: [piscineId], references: [id])
+}
+
+model Favori {
+  id             Int          @id @default(autoincrement())
+  utilisateurId  Int
+  piscineId      Int
+  created_at     DateTime     @default(now())
+
+  utilisateur    Utilisateur  @relation(fields: [utilisateurId], references: [id])
+  piscine        Piscine      @relation(fields: [piscineId], references: [id])
+
+  @@unique([utilisateurId, piscineId])
+}
+
+model Avis {
+  id                        Int          @id @default(autoincrement())
+  note_accessibilite        Int
+  commentaire_accessibilite String
+  note_accueil              Int
+  commentaire_accueil       String
+  note_bassin               Int
+  commentaire_bassin        String
+  note_vestiaires           Int
+  commentaire_vestiaires    String
+  created_at                DateTime     @default(now())
+  utilisateurId             Int
+  piscineId                 Int
+
+  utilisateur               Utilisateur  @relation(fields: [utilisateurId], references: [id])
+  piscine                   Piscine      @relation(fields: [piscineId], references: [id])
+
+  @@unique([utilisateurId, piscineId])
+}
+
+enum Role {
+  USER
+  ADMIN
+}
